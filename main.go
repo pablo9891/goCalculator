@@ -119,6 +119,8 @@ func skipEmptySpaces(index *int, expr string) {
 
 func isParenthesis(c string) bool { return c == "(" || c == ")" }
 
+func isOperator(c string) bool { return c == "^" || c == "+" || c == "-" || c == "*" || c == "/" }
+
 func isNumeric(s string) bool {
 	_, err := strconv.ParseInt(s, 10, 8)
 	return err == nil
@@ -147,7 +149,7 @@ func isBinary(token *Token) bool {
 	return tkType == RightParenthesisTk || tkType == IntegerNumberTk || tkType == DoubleNumberTk
 }
 
-func processNumber(index *int, expr string) *Token {
+func processNumber(index *int, expr string) (*Token, error) {
 	number := ""
 	t := createToken(*index, "", NotValidTk, UndefinedPrec, Operand)
 
@@ -167,13 +169,18 @@ func processNumber(index *int, expr string) *Token {
 	} else {
 		t.tokenType = IntegerNumberTk
 	}
+
+	if *index < len(expr) && !isParenthesis(string(expr[*index])) && !isOperator(string(expr[*index])) && !isEmptySpaces(string(expr[*index])) {
+		return nil, errors.New(fmt.Sprint("undefined token at position ", (*index)-t.position))
+	}
 	t.token = number
 	*index--
-	return t
+	return t, nil
 }
 
 func getNextToken(index *int, expr string, lastToken *Token) (*Token, error) {
 	var t *Token
+	var err error
 
 	skipEmptySpaces(index, expr)
 
@@ -194,20 +201,26 @@ func getNextToken(index *int, expr string, lastToken *Token) (*Token, error) {
 	} else if string(expr[*index]) == "/" {
 		t = createToken(*index, string(expr[*index]), DivisionTk, DivisionPrec, Operator)
 	} else if isNumeric(string(expr[*index])) {
-		t = processNumber(index, expr)
+		t, err = processNumber(index, expr)
 	} else if string(expr[*index]) == "^" {
 		t = createToken(*index, string(expr[*index]), ExponentiationTk, ExponentiationPrec, Operator)
 	} else {
 		t = createToken(*index, string(expr[*index]), NotValidTk, UndefinedPrec, Undefined)
-		return t, errors.New(fmt.Sprint("not balanced parenthesis at position ", t.position))
+		err = errors.New(fmt.Sprint("undefined token at position ", t.position))
 	}
 
+	if err != nil {
+		return nil, err
+	}
 	*index++
 	return t, nil
 }
 
 func applyBinary(result []float64, idxResults *int, tk *Token) ([]float64, error) {
 	var res float64
+	if len(result) < 2 {
+		return nil, errors.New("not valid operation")
+	}
 	n1 := result[*idxResults]
 	result = append(result[:*idxResults], result[*idxResults+1:]...)
 	*idxResults--
@@ -238,6 +251,7 @@ func evaluate(postfixExpr []*Token) (float64, error) {
 	result := make([]float64, 0)
 	idx := 0
 	idxResults := -1
+	var err error
 
 	for idx < len(postfixExpr) {
 		tk := postfixExpr[idx]
@@ -248,21 +262,20 @@ func evaluate(postfixExpr []*Token) (float64, error) {
 			case UnaryAddTk:
 				result[idxResults] = result[idxResults] * 1
 			case AddTk:
-				result, _ = applyBinary(result, &idxResults, tk)
-			case SubstractionTk:
-				result, _ = applyBinary(result, &idxResults, tk)
-			case MultiplicationTk:
-				result, _ = applyBinary(result, &idxResults, tk)
-			case DivisionTk:
-				var err error
 				result, err = applyBinary(result, &idxResults, tk)
-				if err != nil {
-					return 0.0, err
-				}
+			case SubstractionTk:
+				result, err = applyBinary(result, &idxResults, tk)
+			case MultiplicationTk:
+				result, err = applyBinary(result, &idxResults, tk)
+			case DivisionTk:
+				result, err = applyBinary(result, &idxResults, tk)
 			case ExponentiationTk:
-				result, _ = applyBinary(result, &idxResults, tk)
+				result, err = applyBinary(result, &idxResults, tk)
 			default:
 				break
+			}
+			if err != nil {
+				return 0.0, err
 			}
 		} else {
 			n, _ := strconv.ParseFloat(tk.token, 64)
@@ -340,7 +353,6 @@ func processExpression(expr string) (float64, error) {
 }
 
 func main() {
-
 	if len(os.Args) != 2 {
 		fmt.Println("error in parameters")
 		return
