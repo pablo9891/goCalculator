@@ -16,22 +16,22 @@ Go CLI calculator totally written from scratch using basic Golang packages.
 | Root   | _$_ |
 
 ## Examples
-```bash
+```console
 test@mac goCalculator % go run main.go "(((50 + 23) - 234) ^ 2)"          
 25921
 ```
 
-```bash
+```console
 test@mac goCalculator % go run main.go "(((((234 * 5) - 234) ^2) / 100) $ 3) * 2.234.21"
 undefined token at position 41
 ```
 
-```bash
+```console
 test@mac goCalculator % go run main.go "((((234 * 5) - 234) ^2) / 0)"
 division by zero
 ```
 
-```bash
+```console
 test@mac goCalculator % go run main.go "((((234.90 * 5) - 234) ^2) / UNDEFINED SYMBOL)"
 undefined token at position 30
 ```
