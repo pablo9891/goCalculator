@@ -173,7 +173,7 @@ func processNumber(index *int, expr string) (*Token, error) {
 	}
 
 	if *index < len(expr) && !isParenthesis(string(expr[*index])) && !isOperator(string(expr[*index])) && !isEmptySpaces(string(expr[*index])) {
-		return nil, errors.New(fmt.Sprint("undefined token at position ", (*index)-t.position))
+		return nil, errors.New(fmt.Sprint("undefined token at position ", 1+(*index-(*index-t.position))))
 	}
 	t.token = number
 	*index--
@@ -212,7 +212,7 @@ func getNextToken(index *int, expr string, lastToken *Token) (*Token, error) {
 		t = createToken(*index, string(expr[*index]), RootTk, RootPrec, Operator)
 	} else {
 		t = createToken(*index, string(expr[*index]), NotValidTk, UndefinedPrec, Undefined)
-		err = errors.New(fmt.Sprint("undefined token at position ", t.position))
+		err = errors.New(fmt.Sprint("undefined token at position ", 1+(*index-(*index-t.position))))
 	}
 
 	*index++
