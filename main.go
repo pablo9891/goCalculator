@@ -184,6 +184,8 @@ func getNextToken(index *int, expr string, lastToken *Token) (*Token, error) {
 	var t *Token
 	var err error
 
+	t = nil
+	err = nil
 	skipEmptySpaces(index, expr)
 
 	if isParenthesis(string(expr[*index])) {
@@ -213,11 +215,8 @@ func getNextToken(index *int, expr string, lastToken *Token) (*Token, error) {
 		err = errors.New(fmt.Sprint("undefined token at position ", t.position))
 	}
 
-	if err != nil {
-		return nil, err
-	}
 	*index++
-	return t, nil
+	return t, err
 }
 
 func applyBinary(result []float64, idxResults *int, tk *Token) ([]float64, error) {
