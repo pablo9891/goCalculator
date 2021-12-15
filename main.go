@@ -239,15 +239,15 @@ func applyBinary(result []float64, idxResults *int, tk *Token) ([]float64, error
 		res = n1 * n2
 	case RootTk:
 		if n2 < 0 {
-			return nil, errors.New("root base is negative")
+			return nil, errors.New("negative root base undefined")
 		}
 		if n1 == 0 {
-			return nil, errors.New("root exponent is zero")
+			return nil, errors.New("exponent zero root undefined")
 		}
 		res = math.Pow(n2, 1/n1)
 	case DivisionTk:
 		if n1 == 0 {
-			return nil, errors.New("division by zero")
+			return nil, errors.New("division by zero undefined")
 		}
 		res = n2 / n1
 	case ExponentiationTk:
