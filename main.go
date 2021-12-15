@@ -20,6 +20,7 @@ const (
 	DivisionTk
 	MultiplicationTk
 	ExponentiationTk
+	RootTk
 	NotValidTk
 )
 
@@ -27,6 +28,7 @@ const (
 	UnarySubstractionPrec = 11
 	UnaryAddPrec          = 11
 	ExponentiationPrec    = 10
+	RootPrec              = 10
 	MultiplicationPrec    = 9
 	DivisionPrec          = 9
 	AddPrec               = 7
@@ -204,6 +206,8 @@ func getNextToken(index *int, expr string, lastToken *Token) (*Token, error) {
 		t, err = processNumber(index, expr)
 	} else if string(expr[*index]) == "^" {
 		t = createToken(*index, string(expr[*index]), ExponentiationTk, ExponentiationPrec, Operator)
+	} else if string(expr[*index]) == "$" {
+		t = createToken(*index, string(expr[*index]), RootTk, RootPrec, Operator)
 	} else {
 		t = createToken(*index, string(expr[*index]), NotValidTk, UndefinedPrec, Undefined)
 		err = errors.New(fmt.Sprint("undefined token at position ", t.position))
@@ -234,6 +238,14 @@ func applyBinary(result []float64, idxResults *int, tk *Token) ([]float64, error
 		res = n2 - n1
 	case MultiplicationTk:
 		res = n1 * n2
+	case RootTk:
+		if n2 < 0 {
+			return nil, errors.New("root base is negative")
+		}
+		if n1 == 0 {
+			return nil, errors.New("root exponent is zero")
+		}
+		res = math.Pow(n2, 1/n1)
 	case DivisionTk:
 		if n1 == 0 {
 			return nil, errors.New("division by zero")
@@ -270,6 +282,8 @@ func evaluate(postfixExpr []*Token) (float64, error) {
 			case DivisionTk:
 				result, err = applyBinary(result, &idxResults, tk)
 			case ExponentiationTk:
+				result, err = applyBinary(result, &idxResults, tk)
+			case RootTk:
 				result, err = applyBinary(result, &idxResults, tk)
 			default:
 				break
