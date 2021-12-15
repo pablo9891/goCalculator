@@ -22,7 +22,7 @@ test@mac goCalculator % go run main.go "(((50 + 23) - 234) ^ 2)"
 ```
 
 ```bash
-test@mac goCalculator % go run main.go "((((((234 * 5) - 234) ^2) / 100) $ 3) * 2.234.2123.1231) ^ 12312.1231"
+test@mac goCalculator % go run main.go "(((((234 * 5) - 234) ^2) / 100) $ 3) * 2.234.21"
 undefined token at position 41
 ```
 
